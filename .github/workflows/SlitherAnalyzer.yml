@@ -1,0 +1,47 @@
+name: Slither Analysis
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write # required for all workflows
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup node LTS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.14.2
+
+      # - name: Install packages
+      #   run: |
+      #     cd contract
+      #     cp .env.dev .env
+      #     npm install
+
+      # - name: Run Slither
+      #   uses: crytic/slither-action@v0.2.0
+      #   id: slither
+      #   with:
+      #     sarif: results.sarif
+      #     fail-on: none
+      #     target: contract/
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          # Path to SARIF file relative to the root of the repository
+          sarif_file: results.sarif
+          wait-for-processing: true
